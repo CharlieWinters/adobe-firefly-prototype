@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Adobe Express</title>
+</head>
+<body>
+  <div id="adobe"></div>
+  <script src="https://sdk.cc-embed.adobe.com/v3/CCEverywhere.js"></script>
+  <script>
+    // Receiver
+    const url = new URL(window.location.href);
+    const mode = url.searchParams.get('mode');
+
+    if (mode === 'edit'){
+      let receivedData = '';
+      let imageWidth, imageHeight; // Variables to store width and height
+
+      window.addEventListener('message', async (event) => {
+        console.log('Received data:', event.data);
+        // Always validate the origin
+        if (event.origin === window.location.origin) {
+          // Handle the reassembled data
+          if (event.data === 'EOF') {
+            const base64Data = receivedData;
+            const ccEverywhere = await window.CCEverywhere.initialize({
+              clientId: '4588af2a67d5408f8ccb33d55646569f',
+              appName: 'Miro Embed SDK Demo',
+            });
+
+            // Create an image element to get the width and height
+            const img = new Image();
+            img.src = receivedData;
+            img.onload = await function(receivedData) {
+              imageWidth = this.width;
+              imageHeight = this.height;
+              console.log('Image width:', imageWidth);
+              console.log('Image height:', imageHeight);
+
+              const createDesignCallback = {
+                      onCancel: () => {
+                        window.close();
+                      },
+                      onPublish: (publishParams) => {
+                          const localData = { project: publishParams.asset[0].projectId, image: publishParams.asset[0].data };
+                          console.log('Local data is', localData.image);
+                          event.source.postMessage(localData.image, event.origin);
+                          window.close();
+
+                      },
+                      onError: (err) => {
+                          console.error('Error received is', err.toString());
+                      },
+                  };
+
+              ccEverywhere.createDesign({
+                  callbacks: createDesignCallback,
+                  inputParams: {
+                      asset: {
+                          data: base64Data, 
+                          dataType: 'base64', 
+                          type: 'image'
+                      },
+                      canvasSize : {
+                        height: imageHeight,
+                        width: imageWidth,
+                        unit: 'px'
+                      } 
+                  },
+                  outputParams: {
+                      outputType: "base64",
+                  },
+                  modalParams : {
+                    parentElementId : 'adobe',
+                    padding: 0,
+                    borderRadius: 0,
+                  }
+            })
+            };
+
+
+              
+
+              
+          }
+          receivedData += event.data; // Assuming data is a string chunk
+        }
+      }, false);
+    }
+
+    if (mode === 'new'){
+      let receivedData = '';
+      window.addEventListener('message', async (event) => {
+        console.log('Received data:', event.data);
+        // Always validate the origin
+        if (event.origin === window.location.origin) {
+          // Handle the reassembled data
+          if (event.data === 'EOF') {
+            const ccEverywhere = await window.CCEverywhere.initialize({
+                        clientId: '4588af2a67d5408f8ccb33d55646569f',
+                        appName: 'Miro Embed SDK Demo',
+              });
+
+              const createDesignCallback = {
+                      onCancel: () => {},
+                      onPublish: (publishParams) => {
+                          const localData = { project: publishParams.asset[0].projectId, image: publishParams.asset[0].data };
+                          console.log('Local data is', localData.image);
+                          event.source.postMessage(localData.image, event.origin);
+
+                      },
+                      onError: (err) => {
+                          console.error('Error received is', err.toString());
+                      },
+                  };
+
+              ccEverywhere.createDesign({
+                  callbacks: createDesignCallback,
+                  inputParams: {
+                  },
+                  outputParams: {
+                      outputType: "base64",
+              }})
+          }
+          receivedData += event.data; // Assuming data is a string chunk
+        }
+      }, false);
+    }
+      
+
+  </script>
+</body>
+</html>
