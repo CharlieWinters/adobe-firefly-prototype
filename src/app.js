@@ -110,6 +110,10 @@ document.getElementById("createDesign").addEventListener("click", async function
 
 });
 
+document.getElementById("demoIframeIssue").addEventListener("click", async function() {
+  miro.board.ui.openModal({url: "editor.html?mode=new"})
+});
+
 window.addEventListener('message', async (event) => {
     //console.log('Received data:', event.data);
     // Always validate the origin

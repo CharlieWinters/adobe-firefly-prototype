@@ -101,11 +101,14 @@
               });
 
               const createDesignCallback = {
-                      onCancel: () => {},
+                      onCancel: () => {
+                        window.close();
+                      },
                       onPublish: (publishParams) => {
                           const localData = { project: publishParams.asset[0].projectId, image: publishParams.asset[0].data };
                           console.log('Local data is', localData.image);
                           event.source.postMessage(localData.image, event.origin);
+                          window.close();
 
                       },
                       onError: (err) => {
